@@ -7,37 +7,57 @@ using UnityEngine.UI;
 
 public class SlimeKing : MonoBehaviour
 {
+ public GameManager GM;
     public float slimeKingDefaultRound = 2f;
-    public float slimeKingHealth = 500f;
+    public int currentHealth;
+    public int slimeKingHealth = 500;
     public TextMeshProUGUI slimeKingHealthText;
     public Animator Boss;
-    public SlimeState slimeState;
-    public enum SlimeState
+   // public SlimeState slimeState;
+    public HealthBarScript HB;
+
+    private DamageCounter DMC;
+    //public enum SlimeState
+   // {
+    //    None,
+    //    Squash,
+     //   teleport,
+     //   spawn
+   // }
+    public void Start()
     {
-        None,
-        Squash,
-        teleport,
-        spawn
-    }
-    private void Update()
-    {
-        slimeKingHealthText.text = slimeKingHealth + "/500".ToString();
+        currentHealth = slimeKingHealth;
+       HB.SetMaxHealth(slimeKingHealth);
     }
 
-    public void SetState(SlimeState SS)
+    private void Update()
     {
-        if (slimeState == SS) return;
-        slimeState = SS;
-        
-        if(slimeState==SlimeState.None)
-        {
-            Boss.Play("Slime King");
-        }
-        if(slimeState==SlimeState.teleport)
-        {
-            Boss.Play("Teleport");
-        }
+     DMC = FindObjectOfType<DamageCounter>();
+        slimeKingHealthText.text = currentHealth + "/500".ToString();
     }
+
+    public void TakeDamge()
+    {
+        currentHealth -= DMC.DamgeTakenCount;
+        HB.SetHealth(currentHealth);
+        
+        GM.Invoke("BossAnimation",1f);
+        
+    }
+    //public void SetState(SlimeState SS)
+    //{
+      //  if (slimeState == SS) return;
+       // slimeState = SS;
+        
+       // if(slimeState==SlimeState.None)
+       // {
+       //     Boss.Play("Slime King");
+        //}
+       // if(slimeState==SlimeState.teleport)
+       // {
+        //    Boss.Play("Teleport");
+       // }
+   // }
     
     
 

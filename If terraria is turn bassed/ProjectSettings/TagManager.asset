@@ -5,12 +5,23 @@ TagManager:
   serializedVersion: 2
   tags:
   - Buton
-  - LeftKey
-  - RightKey
-  - DownKey
   - UpKey
-  - Deleter
   - Activator
+  - DownKey
+  - RightKey
+  - LeftKey
+  - Boss
+  - SpawnEventPlayer
+  - Barrier
+  - Target2
+  - Target1
+  - Arrow
+  - Target_Particle
+  - NextTurnButton
+  - SlimeBullets
+  - 1
+  - 2
+  - 3
   layers:
   - Default
   - TransparentFX

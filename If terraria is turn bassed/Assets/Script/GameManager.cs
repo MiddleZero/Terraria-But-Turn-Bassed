@@ -14,225 +14,98 @@ public class GameManager : MonoBehaviour
 {
     #region Referencing
 
+    public Animator Black;
     public Player PS;
     public SlimeKing SK;
-    public GameObject failed;
-    public GameObject UIMain;
-    public GameObject UIAttack;
-    public GameObject UIPotion;
-    public GameObject PlayerUI;
-    public GameObject BossUI;
-    public float BossAction;
-    public TextMeshProUGUI HealthPotionNumber;
-    public TextMeshProUGUI IronSkinPotionNumber;
+    
     public TextMeshProUGUI SlimeText;
     public GameObject PlayertextObject;
     public float turn = 1f;
-    public Animator Player;
-    public Animator Boss;
+    public Animator PlayerAnim;
+    public Animator BossAnim;
     [SerializeField] private Turn turnS;
-    public GameObject Mini1;
-    public GameObject Mini2;
-    public DodgeMiniGame_1 DM1;
+    public GameObject SquashEvent;
+    public GameObject TeleportEvent;
+    public GameObject SpawnEvent;
+    public GameObject AttackEvent;
+    public List<LaneController> Lanes;
+    public GameObject EventGrey;
+    public TextMeshProUGUI HealthPotionNumber;
+    public TextMeshProUGUI IronSkinPotionNumber;
+    public GameObject MainUI;
+    public GameObject PotionUI;
+    public DefendBar DB;
+    public DamageCounter DMC;
+    public int turns =1;
+    public TextMeshProUGUI RoundText;
+    public Animator NRI;
+    public Transform canvas;
+    public GameObject PosBoss;
+    public GameObject PosPlayer;
     
-
     #endregion
 
+   
     public enum Turn
     {
+        NoTurn,
         player,
-        boss,
+        Boss,
+    }
+    
+    public LaneController GetLane(int lane)
+    {
+        return Lanes[lane - 1];
+    }
+
+    public void Awake()
+    {
+        Black.Play("Black_Backward");
     }
 
     public void Update()
     {
         
-        if (turn == 1)
-        {
-           SetState(Turn.player); 
-        }
-        if (turn == 2)
-        {
-            SetState(Turn.boss);
-           
-        }
-       
-
-        if (PS.playrHealth <= 0f)
-        {
-            FleeUI();
-        }
-
-        if (PS.playrHealth >= 100f)
-        {
-            PS.playrHealth = 100f;
-        }
-
-        if (SK.slimeKingHealth <= 0f)
-        {
-            Debug.Log("Defeated");
-        }
-
+        DMC = FindObjectOfType<DamageCounter>();
+        RoundText.text = ("Round: ") + turns;
         HealthPotionNumber.text = PS.healthPotionNumber.ToString();
         IronSkinPotionNumber.text = PS.IronPotionNumber.ToString();
-        if (turn == 1f)
+        if (turn == 1)
         {
-            PlayerUI.SetActive(true);
-            BossUI.SetActive(false);
+            SetState(Turn.player);
         }
 
-        if (turn == 2f)
+        if (turn == 2)
         {
-            BossUI.SetActive(true);
-            PlayerUI.SetActive(false);
+            SetState(Turn.NoTurn);
 
         }
 
-        if (PS.playrHealth <= 0)
+        if (turn == 3)
         {
-            FleeUI();
+            SetState(Turn.Boss);
+
         }
 
-        if (SK.slimeKingHealth <= 0)
+        if (PS.currentHealth <= 0)
         {
-            SceneManager.LoadScene("Win");
-        }
-        
-        
-        
-        if (Input.GetKeyDown(KeyCode.L))
-        {
-            teleport();
-            Debug.Log("SKill1");
-        }
-        if (Input.GetKeyDown(KeyCode.K))
-        {
-            squash();
-            Debug.Log("SKill2");
+            Invoke("SwitchScene1",0.5f);
         }
 
-        if (Input.GetKeyDown(KeyCode.J))
+        if (SK.currentHealth <= 0)
         {
-            SlimeTurnEnd();
-            Debug.Log("DebugSwitchTurn");
+            Invoke("SwitchScene2",0.5f);
         }
     }
 
-    #region UI
-
-    public void FleeUI()
+    public void SwitchScene1()
     {
-        failed.SetActive(true);
-    }
-
-    public void BackUI()
+        SceneManager.LoadScene(3);
+    } 
+    public void SwitchScene2()
     {
-        UIAttack.SetActive(false);
-        UIPotion.SetActive(false);
-        UIMain.SetActive(true);
+        SceneManager.LoadScene(2);
     }
-
-    public void AttackUI()
-    {
-        UIMain.SetActive(false);
-        UIAttack.SetActive(true);
-    }
-
-    public void PotionUI()
-    {
-        UIMain.SetActive(false);
-        UIPotion.SetActive(true);
-    }
-
-    #endregion
-
-    #region AttackUI
-
-    public void Meele()
-    {
-        SK.slimeKingHealth -= 50;
-        PS.ArmorPoint -= 20;
-        if (PS.ArmorPoint <= 0)
-        {
-            PS.playrHealth -= 20;
-        }
-        PlayerTurnEnd();
-        PS.SetState(global::Player.PlayerState.Melee);
-    }
-
-    public void Bow()
-    {
-        SK.slimeKingHealth -= 30;
-        PlayerTurnEnd();
-        PS.SetState(global::Player.PlayerState.Bow);
-    }
-
-    #endregion
-
-    #region potion
-
-    public void Heal()
-    {
-        if (PS.healthPotionNumber >= 1)
-        {
-            PS.playrHealth += 30;
-            PS.healthPotionNumber -= 1;
-            PlayerTurnEnd();
-            PS.SetState(global::Player.PlayerState.Drink);
-        }
-    }
-
-    public void Iron()
-    {
-        if (PS.IronPotionNumber >= 1)
-        {
-            PS.ArmorPoint += 50;
-            PS.IronPotionNumber -= 1;
-            PlayerTurnEnd();
-            PS.SetState(global::Player.PlayerState.Drink);
-        }
-    }
-
-    #endregion
-
-    #region SlimeAttack
-
-    public void squash()
-    {
-        SlimeText.text = "King Slime Used Squash...";
-        Invoke("TextClear",3f); 
-        Invoke("Spawn1",3f);
-    }
-
-    public void teleport()
-    {
-        SlimeText.text = "King Slime teleported...";
-        Invoke("TextClear",3f); 
-        Invoke("Spawn2",3f);
-    }
-
-    // public void summon()
-    //{
-    //  SlimeText.text = "King Slime summoned more slime...";
-    //}
-
-    #endregion
-    
-
-    void PlayerTurnEnd()
-    {
-        turn += 1f;
-        PS.SetState(global::Player.PlayerState.None);
-        TextClear();
-    }
-
-    public void SlimeTurnEnd()
-    {
-        turn -= 1f;
-        SK.SetState(SlimeKing.SlimeState.None);
-        TextClear();
-    }
-
     public void SetState(Turn T)
     {
         if (turnS == T) return;
@@ -240,32 +113,173 @@ public class GameManager : MonoBehaviour
         {
             if (turnS == Turn.player)
             {
-                PS.SetState(global::Player.PlayerState.None);
-                SK.SetState(SlimeKing.SlimeState.None);
-            }
-            if (turnS == Turn.boss)
+                Attack();
+            } 
+            if (turnS == Turn.NoTurn)
             {
-                int roll = Random.Range(1,3);
-                if(roll==1) squash();
-                else if (roll==2)teleport();
+                StartCoroutine(PlayerDM());
             }
-            
+
+            if (turnS == Turn.Boss)
+            {
+                StartCoroutine(BossDM());
+            }
+
         }
     }
 
-    public void TextClear()
+    #region Event
+
+    public void Attack()
     {
-        SlimeText.text = "";
-        PlayertextObject.SetActive(false);
+        Instantiate(AttackEvent);
+    }
+
+    public void squash()
+    {
+        Instantiate(SquashEvent);
+    }
+
+    public void teleport()
+    {
+        Instantiate(TeleportEvent);
+    }
+
+    public void summon()
+    {
+        Instantiate(SpawnEvent);
+    }
+
+
+    #endregion
+
+    #region UI
+
+    public void PlayerTurn()
+    {
+        turn = 1f;
+    }
+
+    public void BossTurn()
+    {
+        turn = 3f;
     }
     
-
-    void Spawn1()
+    public void potionUI()
     {
-        Instantiate(Mini1);
-    } 
-    void Spawn2()
-    {
-        Instantiate(Mini2);
+        PotionUI.SetActive(true);
+        MainUI.SetActive(false);
     }
+
+    public void Heal()
+    {
+        if (PS.healthPotionNumber >= 1)
+        {
+            PS.Healing();
+            PotionUI.SetActive(false);
+            turn = 3f;
+        }
+    }
+
+    public void Iron()
+    {
+        if (PS.IronPotionNumber >= 1)
+        {
+            PS.AddShield();
+            PotionUI.SetActive(false);
+            turn = 3f;
+        }
+    }
+
+
+    #endregion
+
+    void CLearText()
+    {
+        SlimeText.text = ("");
+    }
+
+    void BossAnimation()
+    {
+        BossAnim.Play("Slime King_Idol");
+    }
+    void PlayerAnimation()
+    {
+        PlayerAnim.Play("PlayerIdol");
+    }
+    IEnumerator BossEvent()
+    {
+        yield return null;
+        int roll = Random.Range(1, 4);
+        yield return null;
+        if (roll == 1)
+        {
+            SlimeText.text = "King Slime Used Squash...";
+            yield return new WaitForSeconds(2f);
+            CLearText();
+            squash();
+        }
+        else if (roll == 2)
+        {
+            SlimeText.text = "King Slime teleported...";
+            yield return new WaitForSeconds(2f);
+            CLearText();
+            teleport();
+        }
+        else if (roll == 3)
+        {
+            SlimeText.text = "King Slime summoned more slime...";
+            yield return new WaitForSeconds(2f);
+            CLearText();
+            summon();
+        }
+        else if (roll == 4)
+        {
+        }
+
+    }
+
+    public IEnumerator PlayerDM()
+    {
+        PS.TakeDamge();
+        if (DMC.DamgeTakenCount > 0)
+        {
+            PS.playerA.Play("Player_Hurt");
+            Instantiate(PosPlayer);
+           
+        }
+        else
+        {
+                    
+        }
+        yield return null;
+        DMC.DamgeTakenCount = 0;
+    }
+
+    public IEnumerator BossDM()
+    {
+        SK.TakeDamge();
+        if (DMC.DamgeTakenCount > 0)
+        {
+            SK.Boss.Play("Slime King_Hurt");
+            Instantiate(PosBoss);
+            
+        }
+        else
+        {
+
+        }
+
+        yield return null;
+        DMC.DamgeTakenCount = 0;
+        MainUI.SetActive(false);
+        StartCoroutine(BossEvent());
+
+    }
+
+
+
+
+
+
 }
